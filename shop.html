@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elegance Emporium</title>
+  <style>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+    <div class="text-2xl font-bold">🧢 Trendy Tees</div>
+    <div class="space-x-6 hidden md:flex">
+      <a href="#" class="hover:text-blue-500">Home</a>
+      <a href="#products" class="hover:text-blue-500">Products</a>
+      <button onclick="toggleCart()" class="hover:text-blue-500">Cart 🛒 (<span id="cart-count">0</span>)</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="bg-blue-200 text-center py-10">
+    <h1 class="text-4xl font-bold">Trendy Tees for Everyone</h1>
+    <p class="mt-2 text-lg">Fresh looks. Great prices.</p>
+  </header>
+
+  <!-- Filter Section -->
+  <section class="p-6">
+    <label for="price-filter" class="mr-4">Filter by Price:</label>
+    <select id="price-filter" class="border p-2">
+      <option value="all">All</option>
+      <option value="0-500">₹0 - ₹500</option>
+      <option value="500-1000">₹500 - ₹1000</option>
+      <option value="1000+">₹1000+</option>
+    </select>
+  </section>
+
+  <!-- Product Listing -->
+  <section id="products" class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <!-- Products will be rendered here -->
+  </section>
+
+  <!-- Cart Sidebar -->
+  <div id="cart" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg p-6 hidden flex-col z-50 overflow-y-auto">
+    <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+    <div id="cart-items" class="space-y-4"></div>
+
+    <!-- ... inside your cart sidebar div, above the total and checkout ... -->
+
+<!-- Delivery Option -->
+<div class="mt-4">
+  <label for="delivery-option" class="block font-medium mb-1">Delivery Option:</label>
+  <select id="delivery-option" class="border p-2 w-full">
+    <option value="standard">Standard Delivery (3–5 days)</option>
+    <option value="express">VIP Delivery (1–2 days)</option>
+  </select>
+</div>
+
+<!-- Payment Method -->
+<div class="mt-4">
+  <label for="payment-method" class="block font-medium mb-1">Payment Method:</label>
+  <select id="payment-method" class="border p-2 w-full">
+    <option value="cod">Cash on Delivery</option>
+    <option value="upi">UPI</option>
+    <option value="card">Credit/Debit Card</option>
+  </select>
+</div>
+
+<!-- UPI Scanner QR Code -->
+<div id="upi-scanner" class="mt-4 hidden">
+  <label class="block font-medium mb-1">Scan to Pay:</label>
+  <img src="scan.jpeg" alt="UPI QR Code" class="w-48 h-48 object-contain border mx-auto">
+</div>
+
+<!-- Address Input -->
+<div class="mt-4">
+  <label for="address" class="block font-medium mb-1">Delivery Address:</label>
+  <textarea id="address" class="border p-2 w-full" rows="3" placeholder="Enter your full address..."></textarea>
+</div>
+
+<!-- Email Input -->
+<div class="mt-4">
+  <label for="email" class="block font-medium mb-1">Email Address:</label>
+  <input type="email" id="email" class="border p-2 w-full" placeholder="you@example.com" />
+</div>
+
+<!-- Mobile Input -->
+<div class="mt-4">
+  <label for="mobile" class="block font-medium mb-1">Phone Number:</label>
+  <input type="tel" id="mobile" class="border p-2 w-full" placeholder="123-456-7890" />
+</div>
+
+<!-- Total and Checkout -->
+<div class="mt-4">
+  <p class="text-lg">Total: ₹<span id="cart-total">0</span></p>
+  <button onclick="handleCheckout()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Checkout</button>
+</div>
+
+
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffe6f0;
+      color: #333;
+    }
+    header {
+      background-color: #ff99cc;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .menu {
+      display: flex;
+      gap: 15px;
+    }
+    .menu a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      flex: 1;
+    }
+    .cart {
+      position: relative;
+      cursor: pointer;
+    }
+    .cart-details {
+      position: absolute;
+      right: 0;
+      top: 30px;
+      background: white;
+      color: black;
+      border: 1px solid #ccc;
+      padding: 10px;
+      display: none;
+      width: 250px;
+      z-index: 10;
+    }
+    .dropdown {
+      margin: 20px;
+    }
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .product-category {
+      width: 100%;
+      text-align: center;
+      margin-top: 30px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .product-item {
+      background-color: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 200px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .product-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .product-item img {
+      width: 100%;
+      height: auto;
+    }
+    .add-to-cart {
+      margin-top: 10px;
+      padding: 5px 10px;
+      background-color: #ff66b2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .add-to-cart:hover {
+      background-color: #e65caa;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .checkout {
+      background-color: #ff66b2;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .checkout:hover {
+      background-color: #e65caa;
+    }
+    .confirmation {
+      margin-top: 20px;
+      font-size: 18px;
+      color: green;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      .menu, .title, .cart {
+        width: 100%;
+        text-align: center;
+        margin-top: 5px;
+      }
+      .products {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+    /* Overlay behind the cart */
+#cartOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 998;
+}
+.cart-details.open + #cartOverlay {
+  display: block;
+}
+
+/* Close button inside cart */
+.cart-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #ff66b2;
+  border: none;
+  background: none;
+}
+.cart-close-btn:hover {
+  color: #e65caa;
+}
+/* Footer */
+  footer {
+    background: #e65caa;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  footer a {
+    color: #e5383b;
+    font-weight: 600;
+  }
+  footer p {
+    margin: 8px 0 0 0;
+  }
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="menu">
+      <a href="#home">Home</a>
+      <a href="#store">Store</a>
+    </div>
+    <div class="title">Elegance Emporium</div>
+    <div class="cart" onclick="toggleCart()">Cart (0)</div>
+<div class="cart-details" id="cartDetails">
+  <button class="cart-close-btn" onclick="closeCart()">×</button>
+</div>
+<div id="cartOverlay" onclick="closeCart()"></div>
+ 
+  </header>
+
+  <div class="dropdown">
+    <label for="categoryFilter">Filter by Categories:</label>
+    <select id="categoryFilter">
+      <option>All</option>
+      <option>Ethnic wear</option>
+      <option>Western wear</option>
+      <option>Men shopy</option>
+      <option>Footwear</option>
+      <option>Accessories</option>
+      <option>Health care</option>
+      <option>Books</option>
+      <option>Home appliances</option>
+      <option>Electronics</option>
+    </select>
+  </div>
+<div class="products" id="productList">
+
+<style>
+    body {
+      background-color: #ffe6f0;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .payment-option {
+      background-color: white;
+      padding: 15px;
+      margin: 10px auto;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .payment-option input {
+      margin-right: 10px;
+    }
+
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #ff4da6;
+    }
+  </style>
+</head>
+<body>
+
+
+  <!-- Ethnic wear -->
+  <div class="product-category">Ethnic wear</div>
+  <div class="product-item" data-category="Ethnic wear">
+    <img src="images/saree1.jpeg" alt="Elegant Saree">
+    <div>Elegant Saree</div>
+    <div>₹1,200</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Ethnic wear">
+    <img src="images/saree2.jpeg" alt="Elegant Saree">
+    <div>Elegant Saree</div>
+    <div>₹1,200</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Ethnic wear">
+    <img src="images/kurti1.jpeg" alt="Designer Kurti">
+    <div>Designer Kurti</div>
+    <div>₹900</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Ethnic wear">
+    <img src="images/kurti2.jpeg" alt="Designer Kurti">
+    <div>Designer Kurti</div>
+    <div>₹900</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Western wear -->
+  <div class="product-category">Western wear</div>
+  <div class="product-item" data-category="Western wear">
+    <img src="images/dress1.jpeg" alt="Dress 1">
+    <div>Dress </div>
+    <div>₹1,500</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Western wear">
+    <img src="images/dress2.jpeg" alt="Dress 2">
+    <div>Dress </div>
+    <div>₹1,500</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Western wear">
+    <img src="images/top1.jpeg" alt="Top 1">
+    <div>Top </div>
+    <div>₹800</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Western wear">
+    <img src="images/top2.jpeg" alt="Top 2">
+    <div>Top </div>
+    <div>₹800</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Men Shopy -->
+  <div class="product-category">Men Shopy</div>
+  <div class="product-item" data-category="Men Shopy">
+    <img src="images/shirt1.jpeg" alt="Shirt 1">
+    <div>Shirt </div>
+    <div>₹1,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Men Shopy">
+    <img src="images/shirt2.jpeg" alt="Shirt 2">
+    <div>Shirt </div>
+    <div>₹1,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Men Shopy">
+    <img src="images/jeans1.jpeg" alt="Jeans 1">
+    <div>Jeans </div>
+    <div>₹1,400</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Men Shopy">
+    <img src="images/jeans2.jpeg" alt="Jeans 2">
+    <div>Jeans </div>
+    <div>₹1,400</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Footwear -->
+  <div class="product-category">Footwear</div>
+  <div class="product-item" data-category="Footwear">
+    <img src="images/shoes1.jpeg" alt="Shoes 1">
+    <div>Shoes </div>
+    <div>₹1,200</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Footwear">
+    <img src="images/shoes2.jpeg" alt="Shoes 2">
+    <div>Shoes </div>
+    <div>₹1,200</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Footwear">
+    <img src="images/sandals1.jpeg" alt="Sandals 1">
+    <div>Sandals </div>
+    <div>₹700</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Footwear">
+    <img src="images/sandals2.jpeg" alt="Sandals 2">
+    <div>Sandals </div>
+    <div>₹700</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Accessories -->
+  <div class="product-category">Accessories</div>
+  <div class="product-item" data-category="Accessories">
+    <img src="images/watch1.jpeg" alt="Watch 1">
+    <div>Watch </div>
+    <div>₹1,800</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Accessories">
+    <img src="images/watch2.jpeg" alt="Watch 2">
+    <div>Watch </div>
+    <div>₹1,800</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Accessories">
+    <img src="images/sunglasses1.jpeg" alt="Sunglasses 1">
+    <div>Sunglasses </div>
+    <div>₹1,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Accessories">
+    <img src="images/sunglasses2.jpeg" alt="Sunglasses 2">
+    <div>Sunglasses </div>
+    <div>₹1,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Health Care -->
+  <div class="product-category">Health Care</div>
+  <div class="product-item" data-category="Health Care">
+    <img src="images/supplements1.jpeg" alt="Supplements 1">
+    <div>Supplements </div>
+    <div>₹1,500</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Health Care">
+    <img src="images/supplements2.jpeg" alt="Supplements 2">
+    <div>Supplements </div>
+    <div>₹1,500</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Health Care">
+    <img src="images/facecream1.jpeg" alt="Face Cream 1">
+    <div>Face Cream </div>
+    <div>₹600</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Health Care">
+    <img src="images/facecream2.jpeg" alt="Face Cream 2">
+    <div>Face Cream </div>
+    <div>₹600</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Books -->
+  <div class="product-category">Books</div>
+  <div class="product-item" data-category="Books">
+    <img src="images/book1.jpeg" alt="Book 1">
+    <div>Book </div>
+    <div>₹400</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Books">
+    <img src="images/book2.jpeg" alt="Book 2">
+    <div>Book </div>
+    <div>₹400</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Books">
+    <img src="images/textbook1.jpeg" alt="Textbook 1">
+    <div>Textbook </div>
+    <div>₹700</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Books">
+    <img src="images/textbook2.jpeg" alt="Textbook 2">
+    <div>Textbook </div>
+    <div>₹700</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Home Appliances -->
+  <div class="product-category">Home Appliances</div>
+  <div class="product-item" data-category="Home Appliances">
+    <img src="images/toaster1.jpeg" alt="Toaster 1">
+    <div>Toaster </div>
+    <div>₹1,200</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Home Appliances">
+    <img src="images/toaster2.jpeg" alt="Toaster 2">
+    <div>Toaster </div>
+    <div>₹1,200</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Home Appliances">
+    <img src="images/iron1.jpeg" alt="Iron 1">
+    <div>Iron </div>
+    <div>₹900</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Home Appliances">
+    <img src="images/iron2.jpeg" alt="Iron 2">
+    <div>Iron </div>
+    <div>₹900</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+  <!-- Electronics -->
+  <div class="product-category">Electronics</div>
+  <div class="product-item" data-category="Electronics">
+    <img src="images/headphones1.jpeg" alt="Headphones 1">
+    <div>Headphones </div>
+    <div>₹2,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Electronics">
+    <img src="images/headphones2.jpeg" alt="Headphones 2">
+    <div>Headphones </div>
+    <div>₹2,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Electronics">
+    <img src="images/smartphone1.jpeg" alt="Smartphone 1">
+    <div>Smartphone </div>
+    <div>₹15,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+  <div class="product-item" data-category="Electronics">
+    <img src="images/smartphone2.jpeg" alt="Smartphone 2">
+    <div>Smartphone </div>
+    <div>₹15,000</div>
+    <button class="add-to-cart">Add to Cart</button>
+  </div>
+
+</div>
+
+
+<script>
+  document.getElementById('accept-cookies').addEventListener('click', () => {
+    document.getElementById('cookie-consent').style.display = 'none';
+    localStorage.setItem('cookiesAccepted', 'true');
+  });
+
+  if (localStorage.getItem('cookiesAccepted')) {
+    document.getElementById('cookie-consent').style.display = 'none';
+  }
+</script>
+
+  <div class="confirmation" id="confirmationMsg" style="display: none;">Thank you for shopping with us!</div>
+<a href="script" title="Shopping" style="color: white; font-size: 1.5rem; margin-right: 1rem;"></a>
+  <script>
+    let cart = [];
+    const cartDisplay = document.querySelector('.cart');
+    const cartDetails = document.getElementById('cartDetails');
+    const confirmationMsg = document.getElementById('confirmationMsg');
+    
+  const cartOverlay = document.getElementById('cartOverlay');
+  const cartButton = document.querySelector('.cart');
+
+
+
+function toggleCart() {
+  cartDetails.classList.toggle('open');
+  if (cartDetails.classList.contains('open')) {
+    cartOverlay.style.display = 'block';
+  } else {
+    cartOverlay.style.display = 'none';
+  }
+}
+
+function closeCart() {
+  cartDetails.classList.remove('open');
+  cartOverlay.style.display = 'none';
+}
+
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+      button.addEventListener('click', function () {
+        const product = this.parentElement;
+        const name = product.children[1].innerText;
+        const price = parseInt(product.children[2].innerText.replace('₹', ''));
+        cart.push({ name, price });
+        updateCart();
+      });
+    });
+
+     function toggleCart() {
+    const isOpen = cartDetails.style.display === 'block';
+    cartDetails.style.display = isOpen ? 'none' : 'block';
+    cartOverlay.style.display = isOpen ? 'none' : 'block';
+  }
+ function updateCartDisplay() {
+    cartDetails.innerHTML = `
+      <button class="cart-close-btn" onclick="closeCart()">×</button>
+      <button onclick="window.location.href='confirmation.html'">Checkout</button>
+      <button onclick="showOrderPage()">Order Details</button>
+      ${cart.map((item, index) => `
+        <div class="cart-item">
+          <span>${item.name} - ₹${item.price}</span>
+          <button onclick="removeFromCart(${index})">Remove</button>
+        </div>`).join('')}
+      ${cart.length > 0 ? `<button class="checkout" onclick="checkout()">Checkout</button>` : '<p>Your cart is empty</p>'}
+    `;
+    
+    cartButton.textContent = `Cart (${cart.length})`;
+  }
+
+
+    function updateCart() {
+      cartDetails.innerHTML = "";
+      if (cart.length === 0) {
+        cartDetails.innerHTML = "<p>Your cart is empty.</p>";
+        cartDisplay.innerHTML = `Cart (0)<div class="cart-details" id="cartDetails"></div>`;
+        return;
+      }
+      let cartHTML = "";
+      cart.forEach((item, index) => {
+        cartHTML += `<div class='cart-item'>${item.name} - ₹${item.price} <button onclick='removeItem(${index})'>x</button></div>`;
+      });
+      cartHTML += `<button class='checkout' onclick='checkout()'>Checkout</button>`;
+      
+      cartDetails.innerHTML = cartHTML;
+      cartDisplay.innerHTML = `Cart (${cart.length})<div class="cart-details" id="cartDetails">${cartHTML}</div>`;
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function checkout() {
+    alert("Thank you for your purchase!");
+    
+    cart = [];
+    updateCartDisplay();
+    closeCart();
+    
+  }
+
+  function checkout() {
+    const cartItems = [
+        { name: "Top", price: 500, quantity: 2 },
+        { name: "Shoes", price: 1000, quantity: 1 }
+    ];
+
+    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const orderDetails = {
+        items: cartItems,
+        total: total
+    };
+
+    // Store in localStorage
+    localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
+
+    // Redirect to confirmation page
+    window.location.href = "confirmation.html";
+}
+  
+
+
+    document.getElementById('categoryFilter').addEventListener('change', function () {
+      const selected = this.value;
+      const items = document.querySelectorAll('.product-item');
+      const categories = document.querySelectorAll('.product-category');
+
+      if (selected === "All") {
+        items.forEach(i => i.style.display = 'inline-block');
+        categories.forEach(c => c.style.display = 'block');
+        return;
+      }
+
+      items.forEach(i => {
+        i.style.display = (i.getAttribute('data-category') === selected) ? 'inline-block' : 'none';
+      });
+
+      categories.forEach(c => {
+        c.style.display = (c.textContent === selected) ? 'block' : 'none';
+      });
+    });
+
+
+  </script>
+
+<div id="orderSection" style="display: none;">
+ 
+</div>
+
+
+
+
+
+
+<div id="cookie-consent" class="fixed bottom-0 left-0 w-full bg-gray-800 text-white p-4 text-center">
+  <p>We use cookies to improve your experience. <a href="/privacy-policy" class="underline">Learn more</a></p>
+  <button id="accept-cookies" class="btn btn-primary mt-2">Accept</button>
+</div>
+
+<script>
+  document.getElementById('accept-cookies').addEventListener('click', () => {
+    document.getElementById('cookie-consent').style.display = 'none';
+    localStorage.setItem('cookiesAccepted', 'true');
+  });
+
+  if (localStorage.getItem('cookiesAccepted')) {
+    document.getElementById('cookie-consent').style.display = 'none';
+  }
+</script>
+
+
+<footer>
+  <p>Copyright © 2024 Elegance Emporium</p>
+  <p>Made with ❤️ by <a href="https://github.com/sanika-2905" target="_blank" rel="noopener noreferrer">Sanika</a></p>
+</footer>
+
+<!-- External Script -->
+  <script src="script.js"></script>
+  
+</body>
+</html>                 
